@@ -1,0 +1,28 @@
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+    
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "synicl"
+version = "0.0.1"
+dependencies = [
+    "torch[cpuonly] == 2.2.0",
+    "pyyaml == 6.0.1",
+    "tqdm == 4.64.0",
+    "transformers[torch] == 4.39.3",
+    "wandb == 0.17.6",
+]
+requires-python = ">= 3.12"
+
+authors = [
+  {name = "Nelson Lojo", email = "nelson.lojo@berkeley.edu"},
+]
+maintainers = [
+  {name = "Nelson Lojo", email = "nelson.lojo@berkeley.edu"},
+]
+description = "Synthetic ICL tasks ..."
+readme = "README.md"
+

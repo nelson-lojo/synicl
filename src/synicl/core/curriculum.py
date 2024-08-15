@@ -12,7 +12,7 @@ if TYPE_CHECKING:
         SupportsAllComparisons,
         SupportsAdd
     )
-    class Curriculable(SupportsAllComparisons, SupportsAdd, Protocol): ...
+    class Curriculable(SupportsAllComparisons, SupportsAdd, Protocol): ... # pyright: ignore[reportMissingTypeArgument]
 
 YamlMap: TypeAlias = dict[str, Any]
 YamlList: TypeAlias = list[Any]

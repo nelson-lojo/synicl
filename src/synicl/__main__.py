@@ -5,14 +5,16 @@ from pathlib import Path
 
 import yaml, torch
 
-def compile_yaml(includedir: None | str) -> str:
+from . import *
+
+def compile_yaml(conffile: str, includedir: None | str) -> str:
     included = ""
     if includedir is not None:
         for file in Path(includedir).rglob("*.yml"):
             with open(file, "r") as f:
                 included += f.read() + "\n"
 
-    with open(args.conffile, 'r') as f:
+    with open(conffile, 'r') as f:
         lines = f.readlines()
 
     lines = [ ' '*4 + line for line in lines ]
@@ -23,9 +25,9 @@ def compile_yaml(includedir: None | str) -> str:
 
 def main(args: argparse.Namespace):
     
-    full_yaml = compile_yaml(args.includedir)
+    full_yaml = compile_yaml(args.conffile, args.includedir)
 
-    trainer =  yaml.load(full_yaml, yaml.Loader)['train']
+    trainer = yaml.load(full_yaml, yaml.Loader)['train']
 
     if args.checkpointfile != "":
         checkpoint_dict = torch.load(args.checkpointfile, # see train.base.Logger for keys in this dict
@@ -40,6 +42,9 @@ def main(args: argparse.Namespace):
 
         trainer.train(skip_steps=latest_step)
 
+    import code
+    code.interact(local=locals())
+    exit(0)
     trainer.train()
 
 
@@ -47,7 +52,7 @@ if __name__ == "__main__":
     conf_include_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "conf", "include")
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--config", '-c', type=str, default="", action='store', dest="conffile",
+    parser.add_argument("--config", '-c', type=str, default="", action='store', dest="conffile", required=True,
                         help="path to the config file to use for training")
     parser.add_argument("--resume", '-r', type=str, default="", action='store', dest="checkpointfile",
                         help="path to the checkpoint to resume training with")
