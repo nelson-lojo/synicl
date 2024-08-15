@@ -1,0 +1,63 @@
+
+# https://pyyaml.org/wiki/PyYAMLDocumentation#yaml-tags-and-python-types
+# linear regression on a custom gpt2
+
+_defs:
+    ctx: &max_ctx 101
+    b_size: &b_size 64
+    seq_len: &seq_len !!python/object/apply:src.core.Curriculum { kwds: {
+        start: 10,
+        stop: 41,
+        step_size: 2,
+        step_len: 2000
+    }}
+    x_dim: &x_dim !!python/object/apply:src.core.Curriculum { kwds: {
+        start: 5,
+        stop: 21,
+        step_size: 1,
+        step_len: 2000
+    }}
+
+train: !Trainer
+    loss_fn: !!python/object/apply:torch.nn.MSELoss [ ]
+    steps: 500001
+    
+    logger: !Logger
+        type: "WANDB_OFFLINE"
+        run_name: "some run_name"
+        initialization_data: { }
+        log_freq: 100
+        checkpoint_freq: 50000
+        write_dir: "run_data" # absolute path to write information/checkpoints to
+
+    optimizer: !!python/object/apply:functools.partial
+        args: [ !!python/name:torch.optim.Adam ]
+        kwds:
+            lr: 0.0001
+
+    function_class: !LinearRegression
+        batch_size: *b_size
+        sequence_length: *seq_len
+        x_distribution: !XDistribution
+            inner_distribution: !!python/name:torch.distributions.MultivariateNormal
+            x_dimension: *x_dim
+        y_dim: &y_dim 1
+
+    model: !BackboneModel
+        backbone: !!python/object/apply:transformers.GPT2Model [
+            !!python/object/apply:transformers.GPT2Config { kwds: {
+                vocab_size: 1,
+                n_positions: *max_ctx,
+                n_embd: &embed_dim 32,
+                n_layer: &layers 2,
+                n_head: &heads 1,
+                resid_pdrop: 0.0,
+                embd_pdrop: 0.0,
+                attn_pdrop: 0.0,
+                use_cache: False
+            }}
+        ]
+        in_dim: *x_dim
+        hidden_dim: *embed_dim
+        out_dim: *y_dim
+
