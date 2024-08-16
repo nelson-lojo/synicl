@@ -2,15 +2,16 @@ name: in-context-learning
 channels:
   - pytorch
   - defaults
+  - conda-forge
 dependencies:
   - pip=24.0
   - python=3.12.4
   - pytorch[cpuonly]=2.2.0
+  - tqdm=4.66.5
   - packaging
   - pip:
     - ipykernel
     - matplotlib
     - pyyaml==6.0.1
-    - tqdm==4.64.0
     - transformers[torch]==4.39.3
     - wandb==0.17.6

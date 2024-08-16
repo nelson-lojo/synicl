@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     )
     class Curriculable(SupportsAllComparisons, SupportsAdd, Protocol): ... # pyright: ignore[reportMissingTypeArgument]
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Curriculum[T: Curriculable](YAMLObject):
 
     yaml_tag = u"!Curriculum"
@@ -26,12 +26,20 @@ class Curriculum[T: Curriculable](YAMLObject):
         if isinstance(item, Curriculum):
             return item
 
-        return Curriculum[T](
-            start=item,
-            stop=item,
-            step_size=typ(False), # careful: this is only tested on `int | float`
-            step_len=int(1e99)
-        )
+        class FakeCurriculum[T2: Curriculable](Curriculum[T2]):
+            def __init__(self, value: T2): # pyright: ignore[reportMissingSuperCall]
+                self.v = value
+            
+            @property
+            def max(self): return self.v
+            
+            @property
+            def min(self): return self.v
+
+            def at_step(self, step_num: int):
+                return self.v
+
+        return FakeCurriculum(item)
 
     def _prep_phases(self):
         if getattr(self, "phases", None) is None:
@@ -47,11 +55,6 @@ class Curriculum[T: Curriculable](YAMLObject):
     def _max_phases(self) -> int:
         self._prep_phases()
         return len(self.phases)
-
-    @property
-    def partitioning_steps(self) -> list[int]:
-        self._prep_phases()
-        return [ p[1] for p in self.phases ]
 
     @property
     def max(self) -> T:

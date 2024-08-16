@@ -7,7 +7,7 @@ from enum import StrEnum
 
 import wandb
 
-# from tdqm import trange
+from tdqm import trange
 from torch import optim, nn
 from torch import save as torch_save
 from yaml import YAMLObject
@@ -103,7 +103,7 @@ class Logger(YAMLObject):
                 )
 
                 wandb.log_artifact(
-                    self.wandb_run,
+                    # self.wandb_run,
                     artifact,
                     artifact.name,
                     artifact.type
@@ -127,7 +127,10 @@ class Trainer(YAMLObject):
 
     def train(self, skip_steps: int = 0, validate_shapes: bool = True, progress_bar: bool = False):
         if getattr(self, "optim", None) is None:
+            self.model.setup()
             self.optim = self.optimizer(self.model.parameters())
+
+        self.logger.start(trainer=self)
 
         if progress_bar:
             pbar = trange(self.steps)

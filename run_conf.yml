@@ -4,27 +4,29 @@
 
 _defs:
     ctx: &max_ctx 101
-    b_size: &b_size 64
-    seq_len: &seq_len !!python/object/apply:synicl.core.Curriculum { kwds: {
+    b_size: &bsize_std 64
+    seq_len: &seqlen_std !!python/object/apply:synicl.core.Curriculum { kwds: {
         start: 10,
         stop: 41,
         step_size: 2,
         step_len: 2000
     }}
-    x_dim: &x_dim !!python/object/apply:synicl.core.Curriculum { kwds: {
+    x_dim: &xdim_std !!python/object/apply:synicl.core.Curriculum { kwds: {
         start: 5,
         stop: 21,
         step_size: 1,
         step_len: 2000
     }}
-
+    x_dist: &xdist_std !XDistribution
+        inner_distribution: !!python/name:torch.distributions.MultivariateNormal
+        x_dimension: *xdim_std
 
 loss_fn: !!python/object/apply:torch.nn.MSELoss [ ]
 steps: 500001
 
 logger: !Logger
     type: "WANDB_OFFLINE"
-    run_name: "some run_name"
+    run_name: "some_run_name"
     initialization_data: { }
     log_freq: 100
     checkpoint_freq: 50000
@@ -36,12 +38,10 @@ optimizer: !!python/object/apply:functools.partial
         lr: 0.0001
 
 function_class: !LinearRegression
-    batch_size: *b_size
-    sequence_length: *seq_len
-    x_distribution: !XDistribution
-        inner_distribution: !!python/name:torch.distributions.MultivariateNormal
-        x_dimension: *x_dim
-    y_dim: &y_dim 1
+    batch_size: *bsize_std
+    sequence_length: *seqlen_std
+    x_distribution: *xdist_std
+    y_dim: &ydim_std 1
 
 model: !BackboneModel
     backbone: !!python/object/apply:transformers.GPT2Model [
@@ -57,7 +57,7 @@ model: !BackboneModel
             use_cache: False
         }}
     ]
-    in_dim: *x_dim
+    in_dim: *xdim_std
     hidden_dim: *embed_dim
-    out_dim: *y_dim
+    out_dim: *ydim_std
 

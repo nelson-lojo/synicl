@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Any
 
 import torch
 from yaml import YAMLObject
@@ -69,13 +70,20 @@ class Baseline(ContextModel): ...
 @dataclass
 class TrainableModel(ContextModel, nn.Module):
 
+    def setup(self):
+        pass
+
+    @property
+    def metadata(self) -> dict[str, Any]:
+        raise NotImplementedError(f"Abstract TrainableModel does not have metadata!")
+
     def forward(self, xs: Tensor, ys: Tensor) -> Tensor:
         raise NotImplementedError(f"Abstract TrainableModel does not implement .forward()!")
     
     def evaluate(self, xs: Tensor, ys: Tensor) -> Tensor:
         return self(xs, ys)
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class BackboneModel(TrainableModel, YAMLObject):
 
     yaml_tag = u'!BackboneModel'
@@ -85,10 +93,20 @@ class BackboneModel(TrainableModel, YAMLObject):
     hidden_dim: int = 128
     out_dim: int = 1
 
+    @property
+    def metadata(self) -> dict[str, Any]:
+        return {
+            "in_dim" : self.in_dim,
+            "hidden_dim" : self.hidden_dim,
+            "out_dim" : self.out_dim,
+            "config" : self.backbone.config.to_dict()
+        }
+
     def setup(self):
         if getattr(self, "is_setup", False):
             return
 
+        nn.Module.__init__(self)
         in_dim = Curriculum.wrap(self.in_dim, int).max
         hidden_dim = Curriculum.wrap(self.hidden_dim, int).max
         out_dim = Curriculum.wrap(self.out_dim, int).max

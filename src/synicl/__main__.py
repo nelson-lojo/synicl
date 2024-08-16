@@ -25,11 +25,11 @@ def compile_yaml(conffile: str, includedir: None | str) -> str:
 
 def parse_cli_args() -> argparse.Namespace:
     conf_include_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "conf", "include")
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(allow_abbrev=True)
 
-    parser.add_argument("--config", '-c', type=str, default="", action='store', dest="conffile", required=True,
+    parser.add_argument("--config", '-c', type=str, action='store', dest="conffile", required=True,
                         help="Path to the config file to use for training")
-    parser.add_argument("--resume", '-r', type=str, default="", action='store', dest="checkpointfile",
+    parser.add_argument("--resume", type=str, default="", action='store', dest="checkpointfile",
                         help="Path to the checkpoint to resume training with")
     parser.add_argument("--wandb-project", type=str, default="", dest="projectname",
                         help="The project to log to in weights and biases")
@@ -37,9 +37,9 @@ def parse_cli_args() -> argparse.Namespace:
                         help="What to name this run in wandb")
     parser.add_argument("--include-dir", type=str, default=conf_include_dir, action='store', dest="includedir",
                         help="From what directory to include configurations")
-    parser.add_argument("--validate-shapes", type=bool, default=True, dest="validate",
+    parser.add_argument("--validate-shapes", type=bool, default=True, dest="validate", action=argparse.BooleanOptionalAction,
                        help="Validate tensor shapes during execution")
-    parser.add_argument("--progress", type=bool, default=False, dest="progbar",
+    parser.add_argument("--progress-bar", type=bool, default=False, dest="progbar", action=argparse.BooleanOptionalAction,
                         help="Show a progress bar")
     args = parser.parse_args()
     return args
@@ -69,9 +69,9 @@ def main():
     if args.checkpointfile != "":
         trainer, latest_step = load_checkpoint(args.checkpointfile, trainer)
 
-    import code
-    code.interact(local=locals())
-    exit(0)
+    # import code
+    # code.interact(local=locals())
+    # exit(0)
     trainer.train(skip_steps=latest_step, validate_shapes=args.validate, progress_bar=args.progbar)
 
 
