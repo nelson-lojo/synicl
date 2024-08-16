@@ -4,10 +4,14 @@ from typing import Any
 import torch
 from torch import nn, Tensor
 
+from ..core import Curriculum
+
 @dataclass
 class ContextModel:
 
     name: str = field(default="Unknown_ContextModel", kw_only=True)
+    in_dim: int | Curriculum[int]
+    out_dim: int | Curriculum[int]
 
     def __str__(self):
         return self.name
@@ -59,10 +63,6 @@ class ContextModel:
         ]
 
         return torch.cat(contexted + [xs], dim=-1) # returns (b_size, seq_len, x_dim + ctx_len * (x_dim + y_dim))
-
-
-@dataclass
-class Baseline(ContextModel): ...
 
 @dataclass
 class TrainableModel(ContextModel, nn.Module):

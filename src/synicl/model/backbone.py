@@ -13,9 +13,7 @@ class BackboneModel(TrainableModel, YAMLObject):
     yaml_tag = u'!BackboneModel'
 
     backbone: nn.Module
-    in_dim: int
-    hidden_dim: int = 128
-    out_dim: int = 1
+    hidden_dim: int | Curriculum[int]
 
     @property
     def metadata(self) -> dict[str, Any]:
@@ -36,18 +34,22 @@ class BackboneModel(TrainableModel, YAMLObject):
         hidden_dim = Curriculum.wrap(self.hidden_dim, int).max
         out_dim = Curriculum.wrap(self.out_dim, int).max
 
+        if hasattr(self.backbone, "setup"):
+            self.backbone.setup()
+
         self._read_in = nn.Linear(in_dim, hidden_dim)
+        self._backbone = self.backbone
         self._read_out = nn.Linear(hidden_dim, out_dim)
 
         self.is_setup = True
 
     def forward(self, xs: Tensor, ys: Tensor):
         self.setup()
-        self.backbone.to(xs.device)
+        self._backbone.to(xs.device)
 
         zs = self.interleave(xs, ys)
         embeds = self._read_in(zs)
-        output = self.backbone(inputs_embeds=embeds).last_hidden_state
+        output = self._backbone(inputs_embeds=embeds).last_hidden_state
         prediction = self._read_out(output)
 
         return prediction[:, ::2] # predict only on xs

@@ -179,6 +179,12 @@ class Trainer(YAMLObject):
                         "y dimension cannot be larger than x dimension! "
                         + f"Got: x_dim = {x_dim}, y_dim = {y_dim}" 
                     )
+                
+                if x_seq not in (y_seq, y_seq + 1):
+                    raise ValueError(
+                        "Can only inference with x sequences either 1 longer or as long as y sequences!" + \
+                        f"Got: X sequences of length {x_seq} and Y sequences of lengh {y_seq}"
+                    )
 
             output = self.model.evaluate(x_batch, y_batch)
 
