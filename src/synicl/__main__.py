@@ -3,9 +3,9 @@ import os
 
 from pathlib import Path
 
-import yaml, torch
+import yaml
 
-from . import *
+from . import Trainer
 
 def compile_yaml(conffile: str, includedir: None | str) -> str:
     included = ""
@@ -45,6 +45,7 @@ def parse_cli_args() -> argparse.Namespace:
     return args
 
 def load_checkpoint(checkpointfile: str, trainer: Trainer) -> tuple[Trainer, int]:
+    import torch
     checkpoint_dict = torch.load( checkpointfile, # see train.base.Logger for keys in this dict
                                   map_location=("cuda" if torch.cuda.is_available() else "cpu"))
     model_state = checkpoint_dict['model_state_dict']
@@ -69,9 +70,6 @@ def main():
     if args.checkpointfile != "":
         trainer, latest_step = load_checkpoint(args.checkpointfile, trainer)
 
-    # import code
-    # code.interact(local=locals())
-    # exit(0)
     trainer.train(skip_steps=latest_step, validate_shapes=args.validate, progress_bar=args.progbar)
 
 

@@ -7,7 +7,6 @@ from enum import StrEnum
 
 import wandb
 
-from tdqm import trange
 from torch import optim, nn
 from torch import save as torch_save
 from yaml import YAMLObject
@@ -133,7 +132,8 @@ class Trainer(YAMLObject):
         self.logger.start(trainer=self)
 
         if progress_bar:
-            pbar = trange(self.steps)
+            from tdqm import trange
+            pbar = trange(self.steps, unit="step")
             pbar.update(skip_steps)
 
         for i in range(skip_steps, self.steps):

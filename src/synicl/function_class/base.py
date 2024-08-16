@@ -17,7 +17,7 @@ class FunctionClass(YAMLObject):
     x_distribution: XDistribution
     batch_size: int
     sequence_length: int | Curriculum[int]
-    y_dim: int = 1
+    y_dim: int
 
     def sample_at_step(self, step_num: int) -> tuple[Tensor, Tensor]:
         if not isinstance(self.sequence_length, Curriculum):

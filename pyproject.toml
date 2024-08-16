@@ -10,7 +10,7 @@ version = "0.0.2"
 dependencies = [
     "torch[cpuonly] == 2.2.0",
     "pyyaml == 6.0.1",
-    "tqdm == 4.64.0",
+    "tqdm == 4.66.5",
     "transformers[torch] == 4.39.3",
     "wandb == 0.17.6",
 ]

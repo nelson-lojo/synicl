@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Any
 
 import torch
 import torch.distributions as D
@@ -7,8 +6,6 @@ from torch import Size, Tensor
 from yaml import YAMLObject
 
 from .curriculum import Curriculum
-# from .yaml_dataclass import YAMLDataclass
-# from .exceptions import AbstractionError
 
 @dataclass
 class XDistribution(YAMLObject):
@@ -26,8 +23,8 @@ class XDistribution(YAMLObject):
     def x_curriculum(self) -> Curriculum[int]:
         return Curriculum.wrap(self.x_dimension, int)
 
-    def _populate_inner_dist(self):
-        if hasattr(self, "_dist"):
+    def _setup(self):
+        if hasattr(self, "is_setup"):
             return
 
         self._x_dim: Curriculum[int] = self.x_curriculum
@@ -45,11 +42,15 @@ class XDistribution(YAMLObject):
             case _:
                 raise NotImplementedError(f"Distribution {self.inner_distribution} not yet supported!")
         
+        self.is_setup = True
+
+    def _sample_at_step(self, step_num: int, sample_shape: Size) -> Tensor:
+        return self._dist.sample(sample_shape=sample_shape)
 
     def sample_at_step(self, step_num: int, sample_shape: Size) -> Tensor:
-        self._populate_inner_dist()
+        self._setup()
 
-        sample = self._dist.sample(sample_shape=sample_shape)
+        sample = self._sample_at_step(step_num, sample_shape)
         current_dimension = self._x_dim.at_step(step_num)
         sample[..., current_dimension:] = 0
         return sample

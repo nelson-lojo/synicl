@@ -20,17 +20,17 @@ _defs:
     x_dist: &xdist_std !XDistribution
         inner_distribution: !!python/name:torch.distributions.MultivariateNormal
         x_dimension: *xdim_std
+    logger: &logger_std !Logger
+        type: "WANDB_OFFLINE"
+        run_name: "some_run_name"
+        log_freq: 100
+        checkpoint_freq: 50000
+        write_dir: "run_data" # absolute path to write information/checkpoints to
 
 loss_fn: !!python/object/apply:torch.nn.MSELoss [ ]
 steps: 500001
 
-logger: !Logger
-    type: "WANDB_OFFLINE"
-    run_name: "some_run_name"
-    initialization_data: { }
-    log_freq: 100
-    checkpoint_freq: 50000
-    write_dir: "run_data" # absolute path to write information/checkpoints to
+logger: *logger_std
 
 optimizer: !!python/object/apply:functools.partial
     args: [ !!python/name:torch.optim.Adam ]
