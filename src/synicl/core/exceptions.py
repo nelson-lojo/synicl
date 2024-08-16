@@ -10,3 +10,6 @@ class ShapeError(Exception):
 
 class UninitializedError(Exception):
     '''A behavior was attempted without initializing the necessary object!'''
+
+class IncompleteImplementationError(Exception):
+    '''An extending implementation failed to follow conventions!'''

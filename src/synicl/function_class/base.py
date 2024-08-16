@@ -1,9 +1,10 @@
 # pyright: reportMissingSuperCall=information
 from dataclasses import dataclass
-from typing import cast, Any
+from typing import cast
 
 import torch
 from torch import Tensor, Size
+from yaml import YAMLObject
 
 from ..core import (
     XDistribution,
@@ -11,20 +12,16 @@ from ..core import (
 )
 
 @dataclass
-class FunctionClass:
+class FunctionClass(YAMLObject):
 
     x_distribution: XDistribution
     batch_size: int
     sequence_length: int | Curriculum[int]
     y_dim: int = 1
 
-    @property
-    def metadata(self) -> dict[str, Any]:
-        raise NotImplementedError(f"Metadata not yet implemented")
-
     def sample_at_step(self, step_num: int) -> tuple[Tensor, Tensor]:
         if not isinstance(self.sequence_length, Curriculum):
-            self.sequence_length = Curriculum(self.sequence_length)
+            self.sequence_length = Curriculum.wrap(self.sequence_length, int)
 
         x_batch = self.x_distribution.sample_at_step(
             step_num, 
@@ -54,7 +51,7 @@ class FunctionClass:
         raise NotImplementedError(f"Abstract class FunctionClass does not implement `.evaluate(xs)`!")
 
 @dataclass
-class ModifiedFunctionClass:
+class ModifiedFunctionClass(YAMLObject):
     
     inner_function_class: FunctionClass
 
@@ -83,10 +80,6 @@ class ModifiedFunctionClass:
         return self.inner_function_class.evaluate(x_batch, *params, step_num=step_num)
 
     #### END: Delegations ####
-
-    @property
-    def metadata(self) -> dict[str, Any]:
-        raise NotImplementedError(f"Metadata not yet implemented")
 
     def modify_x_pre_eval(self, x_batch: Tensor) -> Tensor:
         return x_batch

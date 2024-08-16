@@ -16,7 +16,6 @@ dependencies = [
     "wandb == 0.17.6",
 ]
 requires-python = ">= 3.12"
-
 authors = [
   {name = "Nelson Lojo", email = "nelson.lojo@berkeley.edu"},
 ]
@@ -25,4 +24,7 @@ maintainers = [
 ]
 description = "Synthetic ICL tasks ..."
 readme = "README.md"
+
+[project.scripts]
+synicl = "synicl.__main__:main"
 

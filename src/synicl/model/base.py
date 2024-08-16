@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Any
 
 import torch
 from yaml import YAMLObject
@@ -86,17 +85,13 @@ class BackboneModel(TrainableModel, YAMLObject):
     hidden_dim: int = 128
     out_dim: int = 1
 
-    @property
-    def metadata(self) -> dict[str, Any]:
-        raise NotImplementedError(f"Metadata not yet implemented")
-
     def setup(self):
         if getattr(self, "is_setup", False):
             return
 
-        in_dim = Curriculum(self.in_dim).max
-        hidden_dim = Curriculum(self.hidden_dim).max
-        out_dim = Curriculum(self.out_dim).max
+        in_dim = Curriculum.wrap(self.in_dim, int).max
+        hidden_dim = Curriculum.wrap(self.hidden_dim, int).max
+        out_dim = Curriculum.wrap(self.out_dim, int).max
 
         self._read_in = nn.Linear(in_dim, hidden_dim)
         self._read_out = nn.Linear(hidden_dim, out_dim)

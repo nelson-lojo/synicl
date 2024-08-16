@@ -1,22 +1,20 @@
 import os
 
-from yaml import YAMLObject
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Any
 from functools import partial
 from enum import StrEnum
 
 import wandb
 
-# from tdqm import tqdm
+# from tdqm import trange
 from torch import optim, nn
 from torch import save as torch_save
+from yaml import YAMLObject
 
 from ..core import ShapeError, UninitializedError
 from ..model import TrainableModel
 from ..function_class import FunctionClass
-
-
 
 @dataclass
 class Logger(YAMLObject):
@@ -29,22 +27,30 @@ class Logger(YAMLObject):
         CONSOLE = "CONSOLE"
 
     type: Type
-    run_name: str
-    initialization_data: dict[str, Any]
     log_freq: int
     checkpoint_freq: int
     write_dir: str # absolute path to write information/checkpoints to
+    project_name: str = ""
+    run_name: str = ""
 
-    def start(self, trainer: "Trainer", project_name: str = "", run_name: str = ""):
+    def start(self, trainer: "Trainer"):
         """Start a wandb run and put it in `self.wandb_run: wandb.Run`"""
 
-        init_args: dict[str, Any] = { "config" : trainer.metadata }
-        if project_name != "":
-            init_args |= { "project" : project_name }
-        if run_name != "":
-            init_args |= { "name" : run_name }
+        match self.type:
+            case Logger.Type.WANDB_OFFLINE | Logger.Type.WANDB_ONLINE:
+                init_args: dict[str, Any] = { 
+                    "config" : asdict(trainer),
+                    "mode" : "online" if self.type is Logger.Type.WANDB_ONLINE else "offline",
+                }
+                if self.project_name != "":
+                    init_args |= { "project" : self.project_name }
+                if self.run_name != "":
+                    init_args |= { "name" : self.run_name }
 
-        self.wandb_run = wandb.init(**init_args)
+                self.wandb_run = wandb.init(**init_args)
+            case Logger.Type.CONSOLE:
+                pass
+            case _: ...
 
     def log(self, step: int, data: dict[str, Any]):
         if step % self.log_freq != 0:
@@ -119,13 +125,13 @@ class Trainer(YAMLObject):
     logger: Logger
     # prediction_indices: list[int] = field(default_factory=lambda: [-1]) # implement this as a custom loss_fn
 
-    @property
-    def metadata(self) -> dict[str, Any]:
-        raise NotImplementedError(f"Metadata not yet implemented")
-
-    def train(self, skip_steps: int = 0, validate_shapes: bool = True, pbar: Any | None = None):
+    def train(self, skip_steps: int = 0, validate_shapes: bool = True, progress_bar: bool = False):
         if getattr(self, "optim", None) is None:
             self.optim = self.optimizer(self.model.parameters())
+
+        if progress_bar:
+            pbar = trange(self.steps)
+            pbar.update(skip_steps)
 
         for i in range(skip_steps, self.steps):
             x_batch, y_batch = self.function_class.sample_at_step(step_num=i)
@@ -185,7 +191,7 @@ class Trainer(YAMLObject):
             loss.backward()
             self.optim.step()
 
-            if pbar is not None:
+            if progress_bar:
                 pbar.update(1)
                 pbar.set_description(f"loss {loss}")
 
@@ -194,5 +200,8 @@ class Trainer(YAMLObject):
             })
 
             self.logger.checkpoint(step=i, model=self.model, optim=self.optim)
+
+        if progress_bar:
+            pbar.close()
 
         return self.model
