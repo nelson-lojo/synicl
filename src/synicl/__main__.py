@@ -31,10 +31,6 @@ def parse_cli_args() -> argparse.Namespace:
                         help="Path to the config file to use for training")
     parser.add_argument("--resume", type=str, default="", action='store', dest="checkpointfile",
                         help="Path to the checkpoint to resume training with")
-    parser.add_argument("--wandb-project", type=str, default="", dest="projectname",
-                        help="The project to log to in weights and biases")
-    parser.add_argument("--run-name", type=str, default="", dest="runname",
-                        help="What to name this run in wandb")
     parser.add_argument("--include-dir", type=str, default=conf_include_dir, action='store', dest="includedir",
                         help="From what directory to include configurations")
     parser.add_argument("--validate-shapes", type=bool, default=True, dest="validate", action=argparse.BooleanOptionalAction,
