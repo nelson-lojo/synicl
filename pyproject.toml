@@ -27,3 +27,8 @@ readme = "README.md"
 [project.scripts]
 synicl = "synicl.__main__:main"
 
+[dependency-groups]
+dev = [
+    "basedpyright>=1.39.8",
+]
+

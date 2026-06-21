@@ -32,10 +32,11 @@ class FunctionClass(YAMLObject):
         )
 
         params = self.sample_params(step_num)
+        y_batch: torch.Tensor
         if isinstance(params, list):
-            y_batch: torch.Tensor = self.evaluate(x_batch, *params, step_num=step_num)
+            y_batch = self.evaluate(x_batch, *params, step_num=step_num)
         else:
-            y_batch: torch.Tensor = self.evaluate(x_batch, params, step_num=step_num)
+            y_batch = self.evaluate(x_batch, params, step_num=step_num)
 
         if torch.cuda.is_available():
             return x_batch.cuda(), y_batch.cuda() 
@@ -101,10 +102,11 @@ class ModifiedFunctionClass(YAMLObject):
         x_batch = self.modify_x_pre_eval(x_batch)
 
         params = self.sample_params(step_num)
+        y_batch: torch.Tensor
         if isinstance(params, list):
-            y_batch: torch.Tensor = self.evaluate(x_batch, *params, step_num=step_num)
+            y_batch = self.evaluate(x_batch, *params, step_num=step_num)
         else:
-            y_batch: torch.Tensor = self.evaluate(x_batch, params, step_num=step_num)
+            y_batch = self.evaluate(x_batch, params, step_num=step_num)
 
         if torch.cuda.is_available():
             x_batch, y_batch = x_batch.cuda(), y_batch.cuda()

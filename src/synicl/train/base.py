@@ -1,7 +1,10 @@
 import os
 
 from dataclasses import dataclass, asdict
-from typing import Any
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from tqdm import tqdm
 from functools import partial
 from enum import StrEnum
 
@@ -131,8 +134,9 @@ class Trainer(YAMLObject):
 
         self.logger.start(trainer=self)
 
+        pbar: "tqdm[Any] | None" = None
         if progress_bar:
-            from tdqm import trange
+            from tqdm import trange
             pbar = trange(self.steps, unit="step")
             pbar.update(skip_steps)
 
@@ -200,7 +204,7 @@ class Trainer(YAMLObject):
             loss.backward()
             self.optim.step()
 
-            if progress_bar:
+            if progress_bar and pbar is not None:
                 pbar.update(1)
                 pbar.set_description(f"loss {loss}")
 
@@ -210,7 +214,7 @@ class Trainer(YAMLObject):
 
             self.logger.checkpoint(step=i, model=self.model, optim=self.optim)
 
-        if progress_bar:
+        if progress_bar and pbar is not None:
             pbar.close()
 
         return self.model
